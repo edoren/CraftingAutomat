@@ -1,5 +1,6 @@
 package lolcroc.craftingautomat;
 
+import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
@@ -8,7 +9,6 @@ import net.minecraft.stats.Stats;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -31,6 +31,7 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityManager;
 import net.minecraftforge.common.capabilities.CapabilityToken;
 import net.minecraftforge.items.IItemHandler;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.util.function.Consumer;
@@ -40,6 +41,7 @@ import java.util.function.Supplier;
 public class CraftingAutomatBlock extends BaseEntityBlock {
 
     public static final String NAME = "autocrafter";
+    public static final MapCodec<CraftingAutomatBlock> CODEC = simpleCodec(CraftingAutomatBlock::new);
 
     // Local vars are fast
     private static final Capability<IItemHandler> ITEM_HANDLER_CAPABILITY = CapabilityManager.get(new CapabilityToken<>(){});
@@ -51,13 +53,22 @@ public class CraftingAutomatBlock extends BaseEntityBlock {
 
     public CraftingAutomatBlock() {
         // RedstoneConductor : Prevents incoming redstone signals to propagate to adjacent blocks
-        super(BlockBehaviour.Properties.of().mapColor(MapColor.LAPIS).instrument(NoteBlockInstrument.BASS)
+        this(Properties.of().mapColor(MapColor.LAPIS).instrument(NoteBlockInstrument.BASS)
                 .requiresCorrectToolForDrops().sound(SoundType.WOOD).strength(3.5F)
                 .isRedstoneConductor((state, getter, pos) -> false));
+    }
+
+    public CraftingAutomatBlock(BlockBehaviour.Properties properties) {
+        super(properties);
         this.registerDefaultState(stateDefinition.any()
                 .setValue(FACING, Direction.NORTH)
                 .setValue(ACTIVE, Boolean.FALSE)
                 .setValue(TRIGGERED, Boolean.FALSE));
+    }
+
+    @Override
+    protected @NotNull MapCodec<? extends BaseEntityBlock> codec() {
+        return CODEC;
     }
 
     @Override
